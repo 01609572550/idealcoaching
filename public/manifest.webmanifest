@@ -1,0 +1,19 @@
+{
+  "name": "Ideal Coaching Center Management System",
+  "short_name": "Ideal Coaching",
+  "description": "Offline-first coaching center management system with Firebase.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+    function userDoc() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function role() {
+      return signedIn() && userDoc().exists() ? userDoc().data.role : '';
+    }
+    function superAdmin() {
+      return role() == 'Super Admin';
+    }
+    function feeCollector() {
+      return role() == 'Fee Collector';
+    }
+    function resultManager() {
+      return role() == 'Result Manager';
+    }
+
+    match /users/{userId} {
+      allow read: if signedIn() && (superAdmin() || request.auth.uid == userId);
+      allow create, update, delete: if signedIn() && superAdmin();
+    }
+
+    match /students/{roll} {
+      allow read: if signedIn() || true;
+      allow create, update, delete: if signedIn() && (superAdmin() || feeCollector());
+    }
+
+    match /payments/{id} {
+      allow read: if signedIn() && (superAdmin() || feeCollector());
+      allow create: if signedIn() && (superAdmin() || feeCollector());
+      allow update, delete: if signedIn() && superAdmin();
+    }
+
+    match /paymentHistory/{id} {
+      allow read: if signedIn() || true;
+      allow create: if signedIn() && (superAdmin() || feeCollector());
+      allow update, delete: if signedIn() && superAdmin();
+    }
+
+    match /dues/{roll} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && (superAdmin() || feeCollector());
+    }
+
+    match /classes/{id} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && superAdmin();
+    }
+
+    match /batches/{id} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && superAdmin();
+    }
+
+    match /exams/{id} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && (superAdmin() || resultManager());
+    }
+
+    match /results/{id} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && (superAdmin() || resultManager());
+    }
+
+    match /settings/{id} {
+      allow read: if signedIn() || true;
+      allow write: if signedIn() && superAdmin();
+    }
+
+    match /notifications/{id} {
+      allow read, write: if signedIn() && superAdmin();
+    }
+
+    match /invoices/{id} {
+      allow read: if signedIn() || true;
+      allow create: if signedIn() && (superAdmin() || feeCollector());
+      allow update, delete: if signedIn() && superAdmin();
+    }
+
+    match /attendanceLogs/{id} {
+      allow read, write: if signedIn() && superAdmin();
+    }
+
+    match /activityLogs/{id} {
+      allow read: if signedIn() && superAdmin();
+      allow create: if signedIn();
+      allow update, delete: if false;
+    }
+  }
+}
